@@ -1,10 +1,276 @@
-#2/20/17: This code should be close to working (or work) with the draftkings API.
-# It's from the lineup picks file in the old NBA files. There is a lot of good stuff in there, the first half is basically all predictions, and the second half is evaluating the best lineup and stuff vs. what actually happened.
-#Should be able to scavenge a good deal of code in there to be reused.
+import datetime
+import requests
+import time
+import pandas as pd
+now = datetime.datetime.now()
+
+class playerDayFromRotoWorld:
+
+    def __init__(self, statArray):
+        self.date = statArray[0]
+        self.gid = statArray[1]
+        self.pos = statArray[2]
+        self.name = statArray[3]
+        self.starter = len(statArray[4]) == 0
+
+        if statArray[5] == 'None':
+            self.dkpoints = 0
+
+        else:
+            self.dkpoints = float(statArray[5])
+
+        if statArray[6] == 'N/A':
+            self.salary = 100000
+
+        else:
+            self.salary = int(statArray[6].strip('$').replace(',',''))
+
+        self.team = statArray[7]
+        self.home = statArray[8] == 'H'
+        self.opponent = statArray[9]
+        self.team_score = statArray[10]
+        self.opponent_score = statArray[11]
+        self.minutes = statArray[12]
+        statLine = statArray[13].split(' ')
+        for stat in statLine:
+            if stat.find('pt') > -1:
+                self.points = int(stat.strip('pt'))
+            if stat.find('rb') > -1:
+                self.rebounds = int(stat.strip('rb'))
+            if stat.find('as') > -1:
+                self.assists = int(stat.strip('as'))
+            if stat.find('st') > -1:
+                self.steals = int(stat.strip('st'))
+            if stat.find('to') > -1:
+                self.turnovers = int(stat.strip('to'))
+            if stat.find('trey') > -1:
+                self.threes = int(stat.strip('trey'))
+            if stat.find('fg') > -1:
+                self.field_goals_attempted = int(stat.strip('fg').split('-')[1])
+                self.field_goals_made = int(stat.strip('fg').split('-')[0])
+            if stat.find('ft') > -1:
+                self.free_throws_attempted = int(stat.strip('ft').split('-')[1])
+                self.free_throws_made = int(stat.strip('ft').split('-')[0])
+
+    def getValue(self):
+        if self.dkpoints == 0:
+            return -10000
+        return self.dkpoints / self.salary
+
+    def __lt__(self, other):
+        return self.getValue() > other.getValue()
+
+    def out(self):
+        print self.name
+
+class parse_DK_stats:
+
+    def __init__(self, id):
+        self.id = id
+
+    def getDK(self, new_date = now, reset=False):
+        rawDayData = statArraySetup(self.id, new_date)
+        players = []
+        for player in rawDayData[0].split('|||')[1:]:
+            if player is '':
+                continue
+            players.append(playerDayFromRotoWorld(player.split(';')))
+
+        return players
+
+
+class dkTeam:
+    team_salary=50000
+    def __init__(self):
+        self.players = []
+        self.pg = None
+        self.sg = None
+        self.sf = None
+        self.c = None
+        self.pf = None
+        self.util = None
+        self.g = None
+        self.f = None
+
+    def isOverCap(self):
+        return sum([p.salary for p in self.players]) > self.team_salary
+
+    def isValidTeam(self):
+        if self.isOverCap():
+            return False
+        if self.pg is None or self.sg is None or self.sf is None or self.pf is None:
+            return False
+        if self.util is None or self.c is None or self.f is None or self.g is None:
+            return False
+        return True
+
+    def getNumRemainingPlayers(self):
+        return 8 - len(self.players)
+
+    def copy(self, other):
+        other.players = list(self.players)
+        other.pg = self.pg
+        other.sg = self.sg
+        other.sf = self.sf
+        other.c = self.c
+        other.pf = self.pf
+        other.util = self.util
+        other.g = self.g
+        other.f = self.f
+
+    def clearPlayers(self):
+        self.players=[]
+        self.pg = None
+        self.sg = None
+        self.sf = None
+        self.c = None
+        self.pf = None
+        self.util = None
+        self.g = None
+        self.f = None
+
+    def addPG(self, pg):
+        if self.pg is not None:
+            return False
+        if pg.pos != 'PG':
+            return False
+        self.pg = pg
+        if self.isOverCap() or pg in self.players:
+            self.pg = None
+            return False
+        self.players.append(pg)
+        return True
+
+    def removePG(self):
+        if self.pg is not None:
+            self.players.remove(self.pg)
+            self.pg = None
+
+    def addSG(self, sg):
+        if self.sg is not None:
+            return False
+        if sg.pos != 'SG':
+            return False
+        self.sg = sg
+        if self.isOverCap() or sg in self.players:
+            self.sg = None
+            return False
+        self.players.append(sg)
+        return True
+
+    def removeSG(self):
+        if self.sg is not None:
+            self.players.remove(self.sg)
+            self.sg = None
+
+    def addPF(self, pf):
+        if self.pf is not None:
+            return False
+        if pf.pos != 'PF':
+            return False
+        self.pf = pf
+        if self.isOverCap() or pf in self.players:
+            self.pf = None
+            return False
+        self.players.append(pf)
+        return True
+
+    def removePF(self):
+        if self.pf is not None:
+            self.players.remove(self.pf)
+            self.pf = None
+
+    def addSF(self, sf):
+        if self.sf is not None:
+            return False
+        if sf.pos != 'SF':
+            return False
+        self.sf = sf
+        if self.isOverCap() or sf in self.players:
+            self.sf = None
+            return False
+        self.players.append(sf)
+        return True
+
+    def removeSF(self):
+        if self.sf is not None:
+            self.players.remove(self.sf)
+            self.sf = None
+
+    def addC(self, c):
+        if self.c is not None:
+            return False
+        if c.pos != 'C':
+            return False
+        self.c = c
+        if self.isOverCap() or c in self.players:
+            self.c = None
+            return False
+        self.players.append(c)
+        return True
+
+    def removeC(self):
+        if self.c is not None:
+            self.players.remove(self.c)
+            self.c = None
+
+    def addG(self, g):
+        if self.g is not None:
+            return False
+        if g.pos != 'PG' and g.pos != 'SG':
+            return False
+        self.g = g
+        if self.isOverCap() or g in self.players:
+            self.g = None
+            return False
+        self.players.append(g)
+        return True
+
+    def removeG(self):
+        if self.g is not None:
+            self.players.remove(self.g)
+            self.g = None
+
+    def addF(self, f):
+        if self.f is not None:
+            return False
+        if f.pos != 'PF' and f.pos != 'SF':
+            return False
+        self.f = f
+        if self.isOverCap() or f in self.players:
+            self.f = None
+            return False
+        self.players.append(f)
+        return True
+
+    def removeF(self):
+        if self.f is not None:
+            self.players.remove(self.f)
+            self.f = None
+
+    def addUtil(self, util):
+        if self.util is not None:
+            return False
+        self.util = util
+        if self.isOverCap() or util in self.players:
+            self.util = None
+            return False
+        self.players.append(util)
+        return True
+
+    def removeUtil(self):
+        if self.util is not None:
+            self.players.remove(self.util)
+            self.util = None
+
+    def getScore(self):
+        return sum([q.dkpoints for q in self.players])
+
+    def getRemainingBudget(self):
+        return self.team_salary - sum([p.salary for p in self.players])
 
 
 class SetOfPlayers:
-    '''Takes in '''
     def key1(self, a):
         return(a.salary, -a.dkpoints)
 
@@ -111,6 +377,7 @@ class SetOfPlayers:
                     team.removeG()
                 team.removeSG()
 
+
 def doThing(y): # Finds the optimal lineup using the SetOfPlayers class
     ys=[y[x:x+20] for x in range(10)]
     ns=[SetOfPlayers(x) for x in ys]
@@ -127,10 +394,22 @@ def doThing(y): # Finds the optimal lineup using the SetOfPlayers class
         return [n.bestTeam.getScore(), [x.name for x in n.bestTeam.players]]
 
         #Uncomment the following code if you want the whole shebang, not just the first lineup's score (which tends to be the highest, #TODO: but you haven't tested as of 2/11/16
-        '''
+
         print n.getPerms(), 'NPERMS'
         print len(n.improvements), 'LENNNIMPROVEMENTS'
         print n.improvements, 'NIMPROVEMENTS'
         print n.getStats(), 'GETSTATS'
         if len(n.bestTeam.players) is not 0:
             print [x.name for x in n.bestTeam.players], 'BESTSTATS'
+
+
+def __mainDK__():
+    #TODO: Pull this number in dynamically from the draftkings lineup page
+    yesterday = parse_DK_stats(8276)
+    players = yesterday.getDK()
+    players.sort()
+    team = doThing(players)
+    return team[0]
+
+get_todays_players_stats(8276)
+__mainDK__()

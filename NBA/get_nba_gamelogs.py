@@ -4,7 +4,7 @@ import pandas as pd
 
 def get_all_gamelog_urls():
     all_urls = []
-    offset_range = 135
+    offset_range = 138
     for page in range(0,offset_range):
         gamelog_url = 'http://www.basketball-reference.com/play-index/tgl_finder.cgi?request=1&match=game&lg_id=NBA&is_playoffs=N&team_seed_cmp=eq&opp_seed_cmp=eq&year_min=2012&year_max=2017&is_range=N&game_num_type=team&order_by=pts&offset=' + str(page*100)
         all_urls.append(gamelog_url)
@@ -53,9 +53,9 @@ def get_player_data():
         soup = BeautifulSoup(r.text, 'html.parser')
         bb_ref_stats = bb_ref_stats.append(get_stats_from_single_page(soup))
         print len(bb_ref_stats)
-        if len(bb_ref_stats) % 10000 == 0:
-            bb_ref_stats.to_csv('./Data/bb_ref_gamelog.csv')
 
+
+    bb_ref_stats.to_csv('./Data/bb_ref_gamelog.csv')
     return bb_ref_stats
 
 get_player_data()

@@ -62,6 +62,4 @@ def get_single_day(day, mon, year):
     else:
         return None
 
-
-# TODO: 3-5: Turn the player prices into a pandas dataframe
 get_all_days()

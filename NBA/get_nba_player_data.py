@@ -4,7 +4,7 @@ import pandas as pd
 
 def get_all_gamelog_urls():
     all_urls = []
-    offset_range = 1422
+    offset_range = 1448
     for page in range(0,offset_range):
         gamelog_url = 'http://www.basketball-reference.com/play-index/pgl_finder.cgi?request=1&player_id=&match=game&year_min=2012&year_max=2017&age_min=0&age_max=99&team_id=&opp_id=&is_playoffs=N&round_id=&game_num_type=&game_num_min=&game_num_max=&game_month=&game_day=&game_location=&game_result=&is_starter=&is_active=&is_hof=&pos_is_g=Y&pos_is_gf=Y&pos_is_f=Y&pos_is_fg=Y&pos_is_fc=Y&pos_is_c=Y&pos_is_cf=Y&c1stat=&c1comp=&c1val=&c2stat=&c2comp=&c2val=&c3stat=&c3comp=&c3val=&c4stat=&c4comp=&c4val=&is_dbl_dbl=&is_trp_dbl=&order_by=pts&order_by_asc=&offset=' + str(page*100)
         all_urls.append(gamelog_url)
@@ -47,18 +47,15 @@ def get_player_data():
 
     r = requests.get(urls[0])
     soup = BeautifulSoup(r.text, 'html.parser')
-    #bb_ref_stats = get_stats_from_single_page(soup) # Uncomment for permanent solution
-    bb_ref_stats = pd.read_csv('./Data/bb_ref.csv') # Delete when done
+    bb_ref_stats = get_stats_from_single_page(soup)
 
-    #for url in urls[1:]: # Uncomment for permanent solution
-    for url in urls[900:]: # Delete when done
+    for url in urls[1:]:
         r = requests.get(url)
         soup = BeautifulSoup(r.text, 'html.parser')
         bb_ref_stats = bb_ref_stats.append(get_stats_from_single_page(soup))
         print len(bb_ref_stats)
-        if len(bb_ref_stats) % 10000 == 0:
-            bb_ref_stats.to_csv('./Data/bb_ref.csv')
 
+    bb_ref_stats.to_csv('./Data/bb_ref.csv')
     return bb_ref_stats
 
 get_player_data()
