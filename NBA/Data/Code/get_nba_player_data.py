@@ -55,18 +55,5 @@ def get_player_data():
         bb_ref_stats = bb_ref_stats.append(get_stats_from_single_page(soup))
         print len(bb_ref_stats)
 
-    bb_ref_stats.to_csv('./Data/bb_ref.csv')
+    bb_ref_stats.to_csv('../Data/bb_ref.csv')
     return bb_ref_stats
-
-get_player_data()
-
-'''
-class basketball_reference_page():
-    """Takes in soup for bball reference and gives ability to output metrics"""
-    def __init__(self, bb_reference_soup):
-        self.bb_reference_soup = bb_reference_soup
-
-    def get_
-
-get_data()
-'''

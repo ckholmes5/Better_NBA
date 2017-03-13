@@ -78,7 +78,6 @@ class parse_DK_stats:
 
         return players
 
-
 class dkTeam:
     team_salary=50000
     def __init__(self):
@@ -269,7 +268,6 @@ class dkTeam:
     def getRemainingBudget(self):
         return self.team_salary - sum([p.salary for p in self.players])
 
-
 class SetOfPlayers:
     def key1(self, a):
         return(a.salary, -a.dkpoints)
@@ -377,7 +375,6 @@ class SetOfPlayers:
                     team.removeG()
                 team.removeSG()
 
-
 def doThing(y): # Finds the optimal lineup using the SetOfPlayers class
     ys=[y[x:x+20] for x in range(10)]
     ns=[SetOfPlayers(x) for x in ys]
@@ -401,7 +398,6 @@ def doThing(y): # Finds the optimal lineup using the SetOfPlayers class
         print n.getStats(), 'GETSTATS'
         if len(n.bestTeam.players) is not 0:
             print [x.name for x in n.bestTeam.players], 'BESTSTATS'
-
 
 def __mainDK__():
     #TODO: Pull this number in dynamically from the draftkings lineup page
