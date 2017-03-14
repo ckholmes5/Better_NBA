@@ -95,12 +95,11 @@ def filter_players_from_top_teams(num_teams = 10):
     return new_log
 
 def transform():
-    #change_CHO_to_NOP()
+    change_CHO_to_NOP()
     transform_playerlog()
     transform_gamelog()
     merge_dksalary_data()
 
-#transform_playerlog()
 #transform()
 
 # TODO: Write a function that takes in draft`kings API and filters the playerlog data based on who is active and available that day. Merge playerlog data with draftkings data, should have position and current salary.

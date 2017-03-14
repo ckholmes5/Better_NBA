@@ -17,7 +17,7 @@ def get_all_days():
                     print day, month, year, len(player_prices)
                 else:
                     pass
-    player_prices.to_csv('./Data/bb_ref_dksalaries.csv')
+    player_prices.to_csv('../Data/bb_ref_dksalaries.csv')
 
 
 def get_single_day(day, mon, year):
@@ -44,15 +44,7 @@ def get_single_day(day, mon, year):
 
                 name = player[3].split(', ')
                 name = name[1] + ' ' + name[0]
-                #name = name.replace(' ', '_').lower()
 
-                #renameDict = {'j.j._barea': 'jose_barea', 'lou_williams': 'louis_williams', "d'angelo_russell": 'dangelo_russell', 'larry_nance_jr.': 'larry_nance', 'o.j._mayo': 'oj_mayo', "kyle_o'quinn": 'kyle_oquinn', "e'twaun_moore" : 'etwaun_moore', 'louis_amundson': 'lou_amundson', "tim_hardaway_jr.": 'timothy_hardaway', "johnny_o'bryant": 'johnny_obryant'}
-
-                #if name in renameDict:
-                #    name = renameDict[name]
-
-
-                #date = player[0][0:4] + '-' + player[0][4:6] + '-' + player[0][6:8]
                 date = mon + '/' + day + '/' + year[2:]
 
                 newPlayer = [date, name, player[6],player[12]]

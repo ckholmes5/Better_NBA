@@ -42,7 +42,7 @@ def get_stats_from_single_page(soup):
     return stats_df
 
 
-def get_player_data():
+def get_gamelog_data():
     urls = get_all_gamelog_urls()
 
     r = requests.get(urls[0])
@@ -55,7 +55,5 @@ def get_player_data():
         print len(bb_ref_stats)
 
 
-    bb_ref_stats.to_csv('./Data/bb_ref_gamelog.csv')
+    bb_ref_stats.to_csv('../Data/bb_ref_gamelog.csv')
     return bb_ref_stats
-
-get_player_data()
