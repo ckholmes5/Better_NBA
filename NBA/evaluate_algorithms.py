@@ -15,6 +15,7 @@ def cycle_through_every_day():
         daily_all_players = player_log[player_log.date_game.str.match(date)]
 
         
+
         print daily_all_players
         if i % 5 == 0:
             break

@@ -1,13 +1,13 @@
 import pandas as pd
 import requests
-from transform_data import filter_players_from_top_teams
 import time
+import math
+from transform_data import filter_players_from_top_teams
 
-filtered_data = filter_players_from_top_teams(15)
+filtered_data = filter_players_from_top_teams(20)
 filtered_data = filtered_data[filtered_data.year.isin([2017])]
 
-def get_average_points(data, filter_num, player):
-    filtered_data = filter_players_from_top_teams(filter_num)
+def get_average_points(player):
     name = str(player['fnu'] + ' ' + player['lnu'])
     pts = filtered_data[filtered_data.player.str.match(name)].pts.mean()
     rebs = filtered_data[filtered_data.player.str.match(name)].trb.mean()
@@ -47,8 +47,12 @@ def statArraySetup(url_number):
         statArray = statArray + 'None' + ';' #'Starter?
 
         # TODO: This is the only thing that has to change!
-        print name, get_average_points(player)
-        statArray = statArray + str(get_average_points(player)) + ';'
+        average_points = get_average_points(player)
+        if math.isnan(average_points):
+            average_points = -1
+
+        print name, average_points
+        statArray = statArray + str(average_points) + ';'
         statArray = statArray + str(10) + ';'
 
         statArray = statArray + str(player['s']) + ';'
@@ -62,5 +66,3 @@ def statArraySetup(url_number):
         playerArray = playerArray + statArray + "|||"
 
     return [playerArray]
-
-statArraySetup(12418)

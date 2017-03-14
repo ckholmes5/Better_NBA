@@ -2,6 +2,7 @@ import datetime
 import requests
 import time
 import pandas as pd
+from bad_team_defense_algorithm import statArraySetup
 now = datetime.datetime.now()
 
 class playerDayFromRotoWorld:
@@ -69,7 +70,7 @@ class parse_DK_stats:
         self.id = id
 
     def getDK(self, new_date = now, reset=False):
-        rawDayData = statArraySetup(self.id, new_date)
+        rawDayData = statArraySetup(self.id)
         players = []
         for player in rawDayData[0].split('|||')[1:]:
             if player is '':
@@ -77,7 +78,6 @@ class parse_DK_stats:
             players.append(playerDayFromRotoWorld(player.split(';')))
 
         return players
-
 
 class dkTeam:
     team_salary=50000
@@ -269,7 +269,6 @@ class dkTeam:
     def getRemainingBudget(self):
         return self.team_salary - sum([p.salary for p in self.players])
 
-
 class SetOfPlayers:
     def key1(self, a):
         return(a.salary, -a.dkpoints)
@@ -377,7 +376,6 @@ class SetOfPlayers:
                     team.removeG()
                 team.removeSG()
 
-
 def doThing(y): # Finds the optimal lineup using the SetOfPlayers class
     ys=[y[x:x+20] for x in range(10)]
     ns=[SetOfPlayers(x) for x in ys]
@@ -402,14 +400,12 @@ def doThing(y): # Finds the optimal lineup using the SetOfPlayers class
         if len(n.bestTeam.players) is not 0:
             print [x.name for x in n.bestTeam.players], 'BESTSTATS'
 
-
 def __mainDK__():
     #TODO: Pull this number in dynamically from the draftkings lineup page
-    yesterday = parse_DK_stats(8276)
+    yesterday = parse_DK_stats(12418)
     players = yesterday.getDK()
     players.sort()
     team = doThing(players)
     return team[0]
 
-get_todays_players_stats(8276)
 __mainDK__()
